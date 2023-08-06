@@ -14,6 +14,7 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BlockStateMeta
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.ChatColor
 
 class BaloShulker : JavaPlugin(), Listener {
 
@@ -57,6 +58,10 @@ class BaloShulker : JavaPlugin(), Listener {
 
         if (shulkerBoxMeta != null && shulkerBoxMeta.blockState is ShulkerBox) {
             val shulkerBox = shulkerBoxMeta.blockState as ShulkerBox
+
+            // Set the new title with aqua color using the & symbol
+            shulkerBox.customName = ChatColor.translateAlternateColorCodes('&', "&l&bBalo Shulker")
+
             player.openInventory(shulkerBox.inventory)
             openedShulkers[player] = shulkerBoxItem
         }
@@ -70,10 +75,23 @@ class BaloShulker : JavaPlugin(), Listener {
         if (player != null && openedShulkers.containsKey(player)) {
             val shulkerBoxItem = openedShulkers[player]
             if (shulkerBoxItem != null) {
-                saveShulkerContents(shulkerBoxItem, event.inventory.contents.filterNotNull().toTypedArray())
+                // Store the current state of the shulker box inventory
+                saveShulkerContents(shulkerBoxItem, event.inventory.contents)
             }
 
             openedShulkers.remove(player)
+        }
+    }
+
+    private fun saveShulkerContents(shulkerItem: ItemStack, contents: Array<ItemStack?>) {
+        val shulkerBoxMeta = shulkerItem.itemMeta as? BlockStateMeta
+
+        if (shulkerBoxMeta != null && shulkerBoxMeta.blockState is ShulkerBox) {
+            val shulkerBox = shulkerBoxMeta.blockState as ShulkerBox
+            shulkerBox.inventory.contents = contents
+            shulkerBox.update()
+            shulkerBoxMeta.blockState = shulkerBox
+            shulkerItem.itemMeta = shulkerBoxMeta
         }
     }
 
@@ -102,17 +120,5 @@ class BaloShulker : JavaPlugin(), Listener {
             return true
         }
         return false
-    }
-
-    private fun saveShulkerContents(shulkerItem: ItemStack, contents: Array<ItemStack>) {
-        val shulkerBoxMeta = shulkerItem.itemMeta as? BlockStateMeta
-
-        if (shulkerBoxMeta != null && shulkerBoxMeta.blockState is ShulkerBox) {
-            val shulkerBox = shulkerBoxMeta.blockState as ShulkerBox
-            shulkerBox.inventory.contents = contents
-            shulkerBox.update()
-            shulkerBoxMeta.blockState = shulkerBox
-            shulkerItem.itemMeta = shulkerBoxMeta
-        }
     }
 }
