@@ -1,0 +1,11 @@
+name: BaloShulker
+version: '${project.version}'
+main: me.hoangxuanlam2007.baloshulker.BaloShulker
+api-version: '1.20'
+permissions:
+  baloshulker.use:
+    default: op
+commands:
+  bs:
+    description: Use BaloShulker Plugin
+    permission: baloshulker.use
