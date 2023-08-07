@@ -1,3 +1,5 @@
+package me.hoangxuanlam2007.baloshulker
+
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Material
