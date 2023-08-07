@@ -40,7 +40,7 @@ class BaloShulker : JavaPlugin(), Listener {
         Bukkit.getConsoleSender().sendMessage(format(ChatColor.GREEN.toString() + "Plugin enabled!"))
         Bukkit.getConsoleSender().sendMessage(format(ChatColor.GREEN.toString() + "You are using $pluginName v$pluginVersion!"))
 
-        // Load or create custom_messages.yml
+        // Load or create messages.yml
         val dataFolder = dataFolder // Assuming dataFolder is the plugin's data folder
         if (!dataFolder.exists()) {
             dataFolder.mkdirs() // Create the necessary directories
