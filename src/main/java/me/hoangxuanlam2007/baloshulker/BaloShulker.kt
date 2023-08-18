@@ -394,12 +394,6 @@ class BaloShulker : JavaPlugin(), Listener {
     }
 
     private fun reloadPlugin() {
-        // Disable the plugin
-        server.pluginManager.disablePlugin(this)
-
-        // Enable the plugin
-        server.pluginManager.enablePlugin(this)
-
         // Unregister listeners and perform any necessary cleanup
         onDisable()
 
