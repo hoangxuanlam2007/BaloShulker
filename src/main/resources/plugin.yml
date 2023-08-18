@@ -5,12 +5,20 @@ api-version: '1.20'
 permissions:
   baloshulker.use:
     default: op
+  baloshulker.info:
+    default: op
   baloshulker.reload:
     default: op
 commands:
   bs:
     description: Use BaloShulker Plugin
     permission: baloshulker.use
+  help:
+    description: Show help
+    permission: baloshulker.use
+  info:
+    description: Show plugin info
+    permission: baloshulker.info
   reload:
-    description: Reload BaloShulker Plugin
+    description: Reload the BaloShulker Plugin
     permission: baloshulker.reload

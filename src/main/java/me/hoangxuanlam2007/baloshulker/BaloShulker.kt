@@ -20,10 +20,19 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.io.*
 import java.nio.charset.StandardCharsets
 import org.bukkit.configuration.file.FileConfiguration
+import org.bukkit.event.HandlerList
+import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryDragEvent
+import org.bukkit.event.player.PlayerDropItemEvent
+import org.bukkit.inventory.ItemFlag
+import java.util.*
+import kotlin.collections.HashMap
 
 class BaloShulker : JavaPlugin(), Listener {
 
     private lateinit var customMessages: FileConfiguration
+
+    private val droppedItemTimestamp = HashMap<Player, Long>()
 
     // Default Plugin prefix
     private fun format(message: String): String {
@@ -42,12 +51,13 @@ class BaloShulker : JavaPlugin(), Listener {
         Bukkit.getConsoleSender().sendMessage(format(ChatColor.GREEN.toString() + "Plugin enabled!"))
         Bukkit.getConsoleSender().sendMessage(format(ChatColor.GREEN.toString() + "You are using $pluginName v$pluginVersion!"))
 
-        // Load or create messages.yml
+        // Load or create custom_messages.yml
         val dataFolder = dataFolder // Assuming dataFolder is the plugin's data folder
         if (!dataFolder.exists()) {
             dataFolder.mkdirs() // Create the necessary directories
         }
 
+        // messages.yml
         val customMessagesFile = File(dataFolder, "messages.yml")
         if (!customMessagesFile.exists()) {
             try {
@@ -58,31 +68,33 @@ class BaloShulker : JavaPlugin(), Listener {
             // Add comment for easier configuration
             try {
                 val writer = BufferedWriter(OutputStreamWriter(FileOutputStream(customMessagesFile), StandardCharsets.UTF_8))
-                writer.write("# ================================================================================================================================|");
-                writer.newLine();
-                writer.write("# > This Plugin is privately coded by ChimmFX, also known as Hoàng Xuân Lâm. <");
-                writer.newLine();
-                writer.write("# - This plugin outperforms ShulkerPack with an array of advanced configurations, along with the ability to set up custom messages.");
-                writer.newLine();
-                writer.write("# - Feel confident in utilizing this plugin!");
-                writer.newLine();
-                writer.write("#");
-                writer.newLine();
-                writer.write("# - There are two permissions that integrate seamlessly with any permissions plugin, such as LuckPerm:");
-                writer.newLine();
-                writer.write("#     + baloshulker.use");
-                writer.newLine();
-                writer.write("#     + baloshulker.reload");
-                writer.newLine();
-                writer.write("# - These permissions function as their names suggest.");
-                writer.newLine();
-                writer.write("#");
-                writer.newLine();
-                writer.write("# For further information, bug reports, or to get in touch, please email: chim31102007@gmail.com");
-                writer.newLine();
-                writer.write("# Author's GitHub: https://github.com/hoangxuanlam2007");
-                writer.newLine();
-                writer.write("# ================================================================================================================================|");
+                writer.write("# ===================================================================================================================|")
+                writer.newLine()
+                writer.write("# > This Plugin is coded privately by ChimmFX aka Hoàng Xuân Lâm. <")
+                writer.newLine()
+                writer.write("# - This plugin works better than ShulkerPack with more configurations including custom messages.")
+                writer.newLine()
+                writer.write("# - Feel safe to use this plugin!")
+                writer.newLine()
+                writer.write("#")
+                writer.newLine()
+                writer.write("# - There are 3 permissions that work perfectly with any permissions plugin, such as LuckPerm:")
+                writer.newLine()
+                writer.write("#     + baloshulker.use")
+                writer.newLine()
+                writer.write("#     + baloshulker.info")
+                writer.newLine()
+                writer.write("#     + baloshulker.reload")
+                writer.newLine()
+                writer.write("# - These permissions work as their names suggested.")
+                writer.newLine()
+                writer.write("#")
+                writer.newLine()
+                writer.write("# For further information, to report bugs, or to contact me, email: chim31102007@gmail.com")
+                writer.newLine()
+                writer.write("# Author Github: https://github.com/hoangxuanlam2007")
+                writer.newLine()
+                writer.write("# ===================================================================================================================|")
                 writer.newLine()
                 writer.newLine()
                 writer.newLine()
@@ -98,14 +110,13 @@ class BaloShulker : JavaPlugin(), Listener {
             // Set default messages
             setDefaultMessage("command_usage", "§cUse §7<§f/bs help§7> §cfor help.")
             setDefaultMessage("command_unknown", "§cUnknown command. Use §7<§f/bs help§7> §cfor help.")
-            setDefaultMessage("command_only_player", "§cOnly players can use this command!")
-            setDefaultMessage("command_player_don't_have_permission", "§cYou don't have permission to use this command!")
-            setDefaultMessage("player_don't_have_reloadperm", "§cYou don't have permission to reload the plugin!")
-            setDefaultMessage("player_not_holding_shulker", "§cYou are not holding a shulker box!")
+            setDefaultMessage("permission_required", "§cYou don't have permission to use this command!")
+            setDefaultMessage("low_tps", "§cThe server TPS is currently too low to open the BaloShulker!")
             setDefaultMessage("help_header", "§d§m ‡         §8(§5Balo§dShulker §eHelp§8)§d§m         ‡")
-            setDefaultMessage("help_line_1", "§7   <§f/bs open§7> §7: Open Balo Shulker.")
-            setDefaultMessage("help_line_2", "§7   <§f/bs help§7> §7: Show command help.")
-            setDefaultMessage("help_footer", "§d§m ‡                                         ‡")
+            setDefaultMessage("help_line_1","§7  [§fRight_Click§7] §7: Open Shulker box.")
+            setDefaultMessage("help_line_2","§7   <§f/bs help§7> §7: Show command help.")
+            setDefaultMessage("help_footer","§d§m ‡                                         ‡")
+
             try {
                 customMessages.save(customMessagesFile)
             } catch (e: IOException) {
@@ -133,6 +144,8 @@ class BaloShulker : JavaPlugin(), Listener {
     }
 
     override fun onDisable() {
+        HandlerList.unregisterAll(this as Listener) // Specify the Listener overload
+
         // Log a message to the console when the plugin is disabled
         Bukkit.getConsoleSender().sendMessage(format(ChatColor.RED.toString() + "Plugin disabled!"))
     }
@@ -141,24 +154,26 @@ class BaloShulker : JavaPlugin(), Listener {
 
     // Map to store custom titles for each colored shulker box
     private val shulkerBoxTitles = mapOf(
-        Material.WHITE_SHULKER_BOX to "§fBalo Shulker trắng",
-        Material.ORANGE_SHULKER_BOX to "§6Balo Shulker cam",
-        Material.MAGENTA_SHULKER_BOX to "§dBalo Shulker hồng sậm",
-        Material.LIGHT_BLUE_SHULKER_BOX to "§bBalo Shulker xanh lam nhạt",
-        Material.YELLOW_SHULKER_BOX to "§eBalo Shulker vàng",
-        Material.LIME_SHULKER_BOX to "§aBalo Shulker xanh lá mạ",
-        Material.PINK_SHULKER_BOX to "§dBalo Shulker hồng",
-        Material.GRAY_SHULKER_BOX to "§8Balo Shulker xám",
-        Material.LIGHT_GRAY_SHULKER_BOX to "§7Balo Shulker xám nhạt",
-        Material.CYAN_SHULKER_BOX to "§3Balo Shulker xanh lơ",
-        Material.PURPLE_SHULKER_BOX to "§5Balo Shulker tím",
-        Material.BLUE_SHULKER_BOX to "§9Balo Shulker xanh nước biển",
-        Material.BROWN_SHULKER_BOX to "§6Balo Shulker nâu",
-        Material.GREEN_SHULKER_BOX to "§2Balo Shulker xanh lá",
-        Material.RED_SHULKER_BOX to "§cBalo Shulker đỏ",
-        Material.BLACK_SHULKER_BOX to "§0Balo Shulker đen",
-        Material.SHULKER_BOX to "§dBalo Shulker" // Default title for the regular shulker box
+            Material.SHULKER_BOX to "§dBalo Shulker", // Default title for the regular shulker box
+            Material.WHITE_SHULKER_BOX to "§fBalo Shulker trắng",
+            Material.ORANGE_SHULKER_BOX to "§6Balo Shulker cam",
+            Material.MAGENTA_SHULKER_BOX to "§dBalo Shulker hồng sậm",
+            Material.LIGHT_BLUE_SHULKER_BOX to "§bBalo Shulker xanh lam nhạt",
+            Material.YELLOW_SHULKER_BOX to "§eBalo Shulker vàng",
+            Material.LIME_SHULKER_BOX to "§aBalo Shulker xanh lá mạ",
+            Material.PINK_SHULKER_BOX to "§dBalo Shulker hồng",
+            Material.GRAY_SHULKER_BOX to "§8Balo Shulker xám",
+            Material.LIGHT_GRAY_SHULKER_BOX to "§7Balo Shulker xám nhạt",
+            Material.CYAN_SHULKER_BOX to "§3Balo Shulker xanh lơ",
+            Material.PURPLE_SHULKER_BOX to "§5Balo Shulker tím",
+            Material.BLUE_SHULKER_BOX to "§9Balo Shulker xanh nước biển",
+            Material.BROWN_SHULKER_BOX to "§6Balo Shulker nâu",
+            Material.GREEN_SHULKER_BOX to "§2Balo Shulker xanh lá",
+            Material.RED_SHULKER_BOX to "§cBalo Shulker đỏ",
+            Material.BLACK_SHULKER_BOX to "§0Balo Shulker đen"
     )
+
+    private val droppedShulkerBoxes = HashMap<Player, Int>()
 
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
@@ -167,18 +182,54 @@ class BaloShulker : JavaPlugin(), Listener {
         val hand = event.hand
         val item = if (hand == EquipmentSlot.HAND) player.inventory.itemInMainHand else player.inventory.itemInOffHand
 
-        // Check if the player is holding a shulker box in the hand and right-clicked in the air
-        if (isShulkerBox(item) && action == Action.RIGHT_CLICK_AIR) {
-            event.isCancelled = true
+        // Check if the player is sneaking (shift key pressed) and holding a shulker box
+        val isSneaking = player.isSneaking
 
-            // Open the shulker box
-            openShulkerBox(player, item)
+        // Check if the player is holding a shulker box and right-clicked or touched and held
+        if (isShulkerBox(item) && (action == Action.RIGHT_CLICK_AIR) && !isSneaking) {
+            // Check if the player recently dropped the same shulker box (within the last 1 second)
+            val lastDropTime = droppedItemTimestamp.getOrDefault(player, 0L)
+            if ((System.currentTimeMillis() - lastDropTime) < 1000) {
+                val droppedSlot = droppedShulkerBoxes[player]
+                if (droppedSlot != null) {
+                    val slotItem = player.inventory.getItem(droppedSlot)
+                    if (slotItem != null && slotItem == item) {
+                        return
+                    } else {
+                        // Close the shulker box GUI
+                        player.closeInventory()
+                        return
+                    }
+                }
+            }
+
+            // Check if the TPS is above a certain threshold
+            val tps = Bukkit.getTPS()[0]
+            if (tps >= 18 && tps <= 20) {
+                // Open the shulker box
+                openShulkerBox(player, item)
+
+                // Store the shulker box being opened and the slot
+                val openedSlot = player.inventory.heldItemSlot
+                droppedShulkerBoxes[player] = openedSlot
+            } else {
+                // Inform the player that the TPS is too low for instant interaction
+                player.sendMessage(format(getMessage("low_tps")))
+            }
         }
+    }
+
+    @EventHandler
+    fun onPlayerDropItem(event: PlayerDropItemEvent) {
+        // Record the timestamp when a player drops an item
+        droppedItemTimestamp[event.player] = System.currentTimeMillis()
     }
 
     private fun isShulkerBox(item: ItemStack): Boolean {
         return item.type in shulkerBoxTitles.keys
     }
+
+    private val openedShulkerSlots = HashMap<Player, Int>()
 
     private fun openShulkerBox(player: Player, shulkerBoxItem: ItemStack) {
         val shulkerBoxMeta = shulkerBoxItem.itemMeta as? BlockStateMeta
@@ -195,6 +246,9 @@ class BaloShulker : JavaPlugin(), Listener {
 
             // Store the shulker box item when it is opened
             openedShulkers[player] = shulkerBoxItem
+
+            // Store the slot index of the opened shulker box
+            openedShulkerSlots[player] = player.inventory.heldItemSlot
         }
     }
 
@@ -211,6 +265,39 @@ class BaloShulker : JavaPlugin(), Listener {
             }
 
             openedShulkers.remove(player)
+
+            // Remove the slot index from the map
+            openedShulkerSlots.remove(player)
+        }
+    }
+
+    @EventHandler
+    fun onInventoryClick(event: InventoryClickEvent) {
+        val player = event.whoClicked as? Player
+
+        // Check if the clicked inventory is the player's inventory
+        if (player != null && event.clickedInventory == player.inventory) {
+            val shulkerBoxSlot = openedShulkerSlots[player]
+
+            // Check if the clicked slot is the opened shulker box slot
+            if (shulkerBoxSlot != null && shulkerBoxSlot == event.slot) {
+                event.isCancelled = true
+            }
+        }
+    }
+
+    @EventHandler
+    fun onInventoryDrag(event: InventoryDragEvent) {
+        val player = event.whoClicked as? Player
+
+        // Check if the clicked inventory is the player's inventory
+        if (player != null && event.inventory == player.inventory) {
+            val shulkerBoxSlot = openedShulkerSlots[player]
+
+            // Check if the dragged slots include the opened shulker box slot
+            if (shulkerBoxSlot != null && event.rawSlots.contains(shulkerBoxSlot)) {
+                event.isCancelled = true
+            }
         }
     }
 
@@ -228,47 +315,37 @@ class BaloShulker : JavaPlugin(), Listener {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (command.name.equals("bs", ignoreCase = true)) {
+            if (sender is Player && !sender.hasPermission("baloshulker.use")) {
+                sender.sendMessage(format(getMessage("permission_required")))
+                return true
+            }
+
             if (args.isNotEmpty()) {
                 when (args[0].toLowerCase()) {
-                    "open" -> {
-                        if (sender is Player) {
-                            // Check if the player has the permission to open shulker boxes
-                            if (sender.hasPermission("baloshulker.use")) {
-                                val itemInMainHand = sender.inventory.itemInMainHand
-                                val itemInOffHand = sender.inventory.itemInOffHand
+                    "help" -> {
+                        // Display help message for /bs help command
+                        showHelp(sender)
+                    }
+                    "info" -> {
+                        if (sender.hasPermission("baloshulker.info")) {
+                            // Get the plugin's version
+                            val pluginName = description.name
+                            val pluginVersion = description.version
 
-                                // Check if the player is holding a shulker box in either hand
-                                if (isShulkerBox(itemInMainHand)) {
-                                    openShulkerBox(sender, itemInMainHand)
-                                } else if (isShulkerBox(itemInOffHand)) {
-                                    openShulkerBox(sender, itemInOffHand)
-                                } else {
-                                    sender.sendMessage(format(getMessage("player_not_holding_shulker")))
-                                }
-                            } else {
-                                sender.sendMessage(format(getMessage("command_player_don't_have_permission")))
-                            }
-                        } else {
-                            sender.sendMessage(format(getMessage("command_only_player")))
+                            sender.sendMessage(format("§aYou are using §e$pluginName §av$pluginVersion."))
                         }
                     }
                     "reload" -> {
                         if (sender.hasPermission("baloshulker.reload")) {
                             reloadPlugin()
 
-                            // Get the plugin's description
+                            // Get the plugin's version
                             val pluginVersion = description.version
-                            val pluginName = description.name
 
-                            sender.sendMessage(format("§aBaloShulker plugin reloaded successfully!"))
-                            sender.sendMessage(format("§aYou are using $pluginName v$pluginVersion!"))
+                            sender.sendMessage(format("§eBaloShulker §av$pluginVersion plugin reloaded successfully!"))
                         } else {
-                            sender.sendMessage(format(getMessage("player_don't_have_reloadperm")))
+                            sender.sendMessage(format("§cYou don't have permission to reload the plugin!"))
                         }
-                    }
-                    "help" -> {
-                        // Display help message for /bs help command
-                        showHelp(sender)
                     }
                     else -> {
                         // Unknown command, show help or error message here
@@ -301,7 +378,10 @@ class BaloShulker : JavaPlugin(), Listener {
 
                 if (sender.hasPermission("baloshulker.use")) {
                     suggestions.add("help") // Add 'help' as a suggestion
-                    suggestions.add("open") // Add 'open' as a suggestion
+                }
+
+                if (sender.hasPermission("baloshulker.info")) {
+                    suggestions.add("info") // Add 'help' as a suggestion
                 }
 
                 if (sender.hasPermission("baloshulker.reload")) {
@@ -316,9 +396,15 @@ class BaloShulker : JavaPlugin(), Listener {
 
     private fun reloadPlugin() {
         // Disable the plugin
-        Bukkit.getPluginManager().disablePlugin(this)
+        server.pluginManager.disablePlugin(this)
 
         // Enable the plugin
-        Bukkit.getPluginManager().enablePlugin(this)
+        server.pluginManager.enablePlugin(this)
+
+        // Unregister listeners and perform any necessary cleanup
+        onDisable()
+
+        // Re-register listeners and reinitialize resources
+        onEnable()
     }
 }
