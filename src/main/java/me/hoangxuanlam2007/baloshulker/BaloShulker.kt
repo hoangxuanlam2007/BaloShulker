@@ -230,6 +230,7 @@ class BaloShulker : JavaPlugin(), Listener {
 
     private val openedShulkerSlots = HashMap<Player, Int>()
 
+    @Suppress("DEPRECATION") // Fix weirdo deprecation from paper api
     private fun openShulkerBox(player: Player, shulkerBoxItem: ItemStack) {
         val shulkerBoxMeta = shulkerBoxItem.itemMeta as? BlockStateMeta
 
