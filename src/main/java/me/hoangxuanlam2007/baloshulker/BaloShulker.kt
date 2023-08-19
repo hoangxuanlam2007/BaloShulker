@@ -143,7 +143,8 @@ class BaloShulker : JavaPlugin(), Listener {
     }
 
     override fun onDisable() {
-        HandlerList.unregisterAll(this as Listener) // Specify the Listener overload
+        // Specify the Listener overload
+        HandlerList.unregisterAll(this as Listener)
 
         // Log a message to the console when the plugin is disabled
         Bukkit.getConsoleSender().sendMessage(format(ChatColor.RED.toString() + "Plugin disabled!"))
