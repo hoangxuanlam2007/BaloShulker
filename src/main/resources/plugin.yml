@@ -2,6 +2,7 @@ name: BaloShulker
 version: '${project.version}'
 main: me.hoangxuanlam2007.baloshulker.BaloShulker
 api-version: '1.20'
+author: 'Xuân Lâm'
 permissions:
   baloshulker.use:
     default: op

@@ -33,6 +33,10 @@ class BaloShulker : JavaPlugin(), Listener {
 
     private val droppedItemTimestamp = HashMap<Player, Long>()
 
+    // Get plugin description
+    private val pluginVersion = this.pluginMeta.version
+    private val pluginName = this.name
+
     // Default Plugin prefix
     private fun format(message: String): String {
         return "§7[ §5Balo§dShulker §7] §f»§r $message"
@@ -42,15 +46,11 @@ class BaloShulker : JavaPlugin(), Listener {
         // Register the event listener
         server.pluginManager.registerEvents(this, this)
 
-        // Get the plugin's description
-        val pluginVersion = description.version
-        val pluginName = description.name
-
         // Log a message to the console when the plugin is enabled
         Bukkit.getConsoleSender().sendMessage(format(ChatColor.GREEN.toString() + "Plugin enabled!"))
         Bukkit.getConsoleSender().sendMessage(format(ChatColor.GREEN.toString() + "You are using $pluginName v$pluginVersion!"))
 
-        // Load or create custom_messages.yml
+        // Load or create messages.yml
         val dataFolder = dataFolder // Assuming dataFolder is the plugin's data folder
         if (!dataFolder.exists()) {
             dataFolder.mkdirs() // Create the necessary directories
@@ -327,21 +327,13 @@ class BaloShulker : JavaPlugin(), Listener {
                     }
                     "info" -> {
                         if (sender.hasPermission("baloshulker.info")) {
-                            // Get the plugin's version
-                            val pluginName = Bukkit.getName()
-                            val pluginVersion = Bukkit.getBukkitVersion()
-
                             sender.sendMessage(format("§aYou are using §e$pluginName §av$pluginVersion."))
                         }
                     }
                     "reload" -> {
                         if (sender.hasPermission("baloshulker.reload")) {
                             reloadPlugin()
-
-                            // Get the plugin's version
-                            val pluginVersion = Bukkit.getBukkitVersion()
-
-                            sender.sendMessage(format("§eBaloShulker §av$pluginVersion plugin reloaded successfully!"))
+                            sender.sendMessage(format("§e$pluginName §av$pluginVersion plugin reloaded successfully!"))
                         } else {
                             sender.sendMessage(format("§cYou don't have permission to reload the plugin!"))
                         }

@@ -8,7 +8,6 @@
     <artifactId>BaloShulker</artifactId>
     <version>1.4</version>
     <packaging>jar</packaging>
-
     <name>BaloShulker</name>
 
     <properties>
