@@ -320,7 +320,7 @@ class BaloShulker : JavaPlugin(), Listener {
             }
 
             if (args.isNotEmpty()) {
-                when (args[0].toLowerCase()) {
+                when (args[0].lowercase(Locale.getDefault())) {
                     "help" -> {
                         // Display help message for /bs help command
                         showHelp(sender)
