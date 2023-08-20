@@ -1,3 +1,6 @@
+// Fix Deprecation from Paper API
+@file:Suppress("DEPRECATION")
+
 package me.hoangxuanlam2007.baloshulker
 
 import org.bukkit.Bukkit
@@ -26,7 +29,7 @@ import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
 
-
+@Suppress("UNUSED")
 class BaloShulker : JavaPlugin(), Listener {
 
     private lateinit var customMessages: FileConfiguration
@@ -205,7 +208,7 @@ class BaloShulker : JavaPlugin(), Listener {
 
             // Check if the TPS is above a certain threshold
             val tps = Bukkit.getTPS()[0]
-            if (tps >= 18 && tps <= 20) {
+            if (tps in 18.0..20.0) {
                 // Open the shulker box
                 openShulkerBox(player, item)
 
