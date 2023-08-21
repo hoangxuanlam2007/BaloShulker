@@ -185,11 +185,8 @@ class BaloShulker : JavaPlugin(), Listener {
         val hand = event.hand
         val item = if (hand == EquipmentSlot.HAND) player.inventory.itemInMainHand else player.inventory.itemInOffHand
 
-        // Check if the player is sneaking (shift key pressed) and holding a shulker box
-        val isSneaking = player.isSneaking
-
-        // Check if the player is holding a shulker box and right-clicked or touched and held
-        if (isShulkerBox(item) && (action == Action.RIGHT_CLICK_AIR) && !isSneaking) {
+        // Check if the player is holding a shulker box and right-clicked
+        if (isShulkerBox(item) && (action == Action.RIGHT_CLICK_AIR)) {
             // Check if the player recently dropped the same shulker box (within the last 1 second)
             val lastDropTime = droppedItemTimestamp.getOrDefault(player, 0L)
             if ((System.currentTimeMillis() - lastDropTime) < 1000) {
@@ -275,18 +272,15 @@ class BaloShulker : JavaPlugin(), Listener {
         }
     }
 
+    // Preventing specific interactions with shulker boxes while their GUIs are open
     @EventHandler
     fun onInventoryClick(event: InventoryClickEvent) {
         val player = event.whoClicked as? Player
 
-        // Check if the clicked inventory is the player's inventory
-        if (player != null && event.clickedInventory == player.inventory) {
-            val shulkerBoxSlot = openedShulkerSlots[player]
-
-            // Check if the clicked slot is the opened shulker box slot
-            if (shulkerBoxSlot != null && shulkerBoxSlot == event.slot) {
-                event.isCancelled = true
-            }
+        // Check if the player has an open shulker box GUI
+        if (player != null && openedShulkers.containsKey(player)) {
+            // Prevent any interactions with the inventory while shulker box GUI is open
+            event.isCancelled = true
         }
     }
 
@@ -294,14 +288,10 @@ class BaloShulker : JavaPlugin(), Listener {
     fun onInventoryDrag(event: InventoryDragEvent) {
         val player = event.whoClicked as? Player
 
-        // Check if the clicked inventory is the player's inventory
-        if (player != null && event.inventory == player.inventory) {
-            val shulkerBoxSlot = openedShulkerSlots[player]
-
-            // Check if the dragged slots include the opened shulker box slot
-            if (shulkerBoxSlot != null && event.rawSlots.contains(shulkerBoxSlot)) {
-                event.isCancelled = true
-            }
+        // Check if the player has an open shulker box GUI
+        if (player != null && openedShulkers.containsKey(player)) {
+            // Prevent any interactions with the inventory while shulker box GUI is open
+            event.isCancelled = true
         }
     }
 
